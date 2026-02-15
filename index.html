@@ -1,125 +1,387 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <title>Voice to Text</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Kids Voice Typer</title>
     <style>
-        * {
-            font-size: 16px;
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #2196F3;
+            --accent-color: #FF9800;
+            --bg-color: #E0F7FA;
+            --chat-bg: #FFFFFF;
+            --text-color: #333;
         }
 
         body {
-            padding: 8px 16px;
-            font-family: sans-serif;
-            min-width: 90vw;
-            min-height: 90vh;
+            margin: 0;
+            padding: 0;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+            background-color: var(--bg-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
-        button,
-        select,
-        option {
-            padding: 8px;
-            margin: 8px;
-            width: 200px;
+        /* Header */
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-size: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 10;
         }
 
-        #output {
-            padding: 8px;
-            margin: 8px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            min-height: 100%;
-            height: 85vh;
+        /* Chat Area */
+        #chat-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            scroll-behavior: smooth;
+            background-image: url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%239C92AC" fill-opacity="0.08"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');
+        }
+
+        .message-bubble {
+            background-color: #DCF8C6;
+            /* WhatsApp sent message color */
+            padding: 15px 20px;
+            border-radius: 20px;
+            border-bottom-right-radius: 5px;
+            /* Pointy corner on right */
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            max-width: 85%;
+            font-size: 1.25rem;
+            line-height: 1.5;
+            color: var(--text-color);
+            align-self: flex-end;
+            /* Align to right */
+            position: relative;
+            animation: popIn 0.3s ease-out;
+            margin-bottom: 5px;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .interim-text {
+            color: #999;
+        }
+
+        /* Bottom Control Bar */
+        #control-bar {
+            background-color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 20;
+        }
+
+        /* Buttons */
+        .btn {
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: transform 0.1s, background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        #lang-toggle {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 10px 20px;
+            font-size: 1rem;
+            width: 100px;
+        }
+
+        #clear-btn {
+            background-color: #FF5252;
+            color: white;
+            padding: 10px 20px;
+            font-size: 1rem;
+            width: 100px;
+        }
+
+        /* Mic Button */
+        #mic-container {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 25px;
+            /* To make it pop out a bit */
+        }
+
+        #mic-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 2.5rem;
+            box-shadow: 0 6px 15px rgba(76, 175, 80, 0.4);
+            border: 4px solid white;
+        }
+
+        #mic-btn.listening {
+            background-color: #F44336;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 20px rgba(244, 67, 54, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(244, 67, 54, 0);
+            }
+        }
+
+        /* Language Flag Icon enhancement */
+        .lang-icon {
+            font-size: 1.2em;
+            margin-right: 5px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            color: #888;
+            margin-top: 50px;
+            font-size: 1.2rem;
         }
     </style>
 </head>
 
 <body>
-    <button id="startButton">Start Voice Input</button>
-    <button id="clear">Clear</button>
-    <select id="language" onchange="recognition.lang = this.value">
-        <option value="en-US">English</option>
-        <option value="hi-IN">Hindi</option>
-    </select>
-    <div id="output" contentEditable="true">Hello</div>
+
+    <header>
+    🎈 Talk to Typer 🤖
+    </header>
+
+    <div id="chat-container">
+        <div class="empty-state">
+            Tap the Mic and start speaking! <br> 🎤
+        </div>
+    </div>
+
+    <!-- Spacer for the absolutely positioned mic button -->
+    <div style="height: 40px;"></div>
+
+    <div id="control-bar">
+        <button id="lang-toggle" class="btn" onclick="toggleLanguage()">
+            <span id="lang-display">🇬🇧 English</span>
+        </button>
+
+        <div id="mic-container">
+            <button id="mic-btn" class="btn" onclick="toggleListening()">
+                🎤
+            </button>
+        </div>
+
+        <button id="clear-btn" class="btn" onclick="clearChat()">
+            🗑️ Clear
+        </button>
+    </div>
 
     <script>
-        const startButton = document.getElementById("startButton");
-        const outputDiv = document.getElementById("output");
-        const clearButton = document.getElementById("clear");
+        // DOM Elements
+        const chatContainer = document.getElementById('chat-container');
+        const micBtn = document.getElementById('mic-btn');
+        const langDisplay = document.getElementById('lang-display');
 
-        // Config
-        const LANG = "en-US";
-        clearButton.addEventListener("click", () => {
-            outputDiv.textContent = "";
-        });
-
-        const recognition = new (window.SpeechRecognition ||
-            window.webkitSpeechRecognition ||
-            window.mozSpeechRecognition ||
-            window.msSpeechRecognition)();
-
+        // State
         let isListening = false;
+        let currentLang = 'en-US';
+        let currentBubble = null;
+        let finalTranscript = '';
+
+        // Speech Recognition Setup
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition)();
 
         recognition.continuous = true;
         recognition.interimResults = true;
-
-        recognition.onresult = (event) => {
-            let interimTranscript = '';
-            let finalTranscript = '';
-
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                if (event.results[i].isFinal) {
-                    finalTranscript += event.results[i][0].transcript;
-                } else {
-                    interimTranscript += event.results[i][0].transcript;
-                }
-            }
-
-            // Remove existing interim span to prevent duplication in text calculation
-            const interimSpan = document.getElementById('interim');
-            if (interimSpan) {
-                interimSpan.remove();
-            }
-
-            if (finalTranscript) {
-                // simple append logic
-                // Check if we need a space
-                const text = outputDiv.innerText;
-                if (text.length > 0 && !text.endsWith(' ') && !finalTranscript.startsWith(' ')) {
-                    outputDiv.appendChild(document.createTextNode(' '));
-                }
-                outputDiv.appendChild(document.createTextNode(finalTranscript));
-            }
-
-            if (interimTranscript) {
-                const newInterimSpan = document.createElement('span');
-                newInterimSpan.id = 'interim';
-                newInterimSpan.style.color = '#888';
-                newInterimSpan.textContent = interimTranscript;
-                outputDiv.appendChild(newInterimSpan);
-            }
-        };
+        recognition.lang = currentLang;
 
         recognition.onstart = () => {
-            startButton.textContent = "Stop Listening";
             isListening = true;
-        };
-        recognition.onend = () => {
-            startButton.textContent = "Start Voice Input";
-            isListening = false;
-            // Remove any leftover interim span
-            const interimSpan = document.getElementById('interim');
-            if (interimSpan) interimSpan.remove();
+            micBtn.classList.add('listening');
+            micBtn.innerHTML = '🛑'; // Stop icon
+            createNewBubble(); // Start a new bubble when listening starts
         };
 
-        startButton.addEventListener("click", () => {
+        recognition.onend = () => {
+            isListening = false;
+            micBtn.classList.remove('listening');
+            micBtn.innerHTML = '🎤';
+
+            // Clean up if the last bubble was empty/only interim that got removed?
+            // Actually, we keep the bubble if it has final content.
+            // If we just stopped, we might want to start fresh next time.
+            currentBubble = null;
+        };
+
+        recognition.onresult = (event) => {
+            let interim = '';
+
+            // Re-calculate final transcript for this session from the event
+            // But with continuous=true, event.results accumulates.
+            // We need to be careful not to duplicate text we've already "committed".
+            // However, resetting the bubble text content every time based on event.resultIndex is safer.
+
+            let bubbleFinal = '';
+
+            // Loop from the resultIndex of the *current* session
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    bubbleFinal += event.results[i][0].transcript;
+                } else {
+                    interim += event.results[i][0].transcript;
+                }
+            }
+
+            // We need to append this new 'bubbleFinal' to what we have? 
+            // Actually, event.results contains *all* results for the current session.
+            // Wait, continuous mode accumulates results in the array until stopped.
+            // So we can re-render the *current* session's text fully.
+
+            // Optimization: Only update the current bubble.
+            if (!currentBubble) createNewBubble();
+
+            // Store the "confirmed" text of this bubble (accumulated from previous final results in this session + new finals)
+            // But wait, if we use the simple loop above, we only get the *new* stuff starting from resultIndex?
+            // Actually, resultIndex is the index of the *first* changed result.
+            // If we want to display the *entire* session in one bubble:
+
+            // Let's refine the approach:
+            // 1. Maintain `sessionTranscript` text.
+            // 2. Loop through all results? No, excessive.
+
+            // Correct approach for continuous:
+            // Iterate `event.results` creates a list of Result objects.
+            // We can reconstruct the *entire* text of the current recognition session.
+
+            let fullSessionText = '';
+            let fullInterimText = '';
+
+            for (let i = 0; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    fullSessionText += event.results[i][0].transcript;
+                } else {
+                    fullInterimText += event.results[i][0].transcript;
+                }
+            }
+
+            // But wait, if we start/stop, the `event.results` resets.
+            // So `fullSessionText` is only for *this* burst of speaking.
+            // That's perfect for a "message bubble". 
+            // When we start listening -> New Bubble.
+            // While listening -> Update that bubble.
+            // When stop -> Bubble is done.
+
+            // Update the current bubble's content
+            currentBubble.innerHTML = fullSessionText + '<span class="interim-text"> ' + fullInterimText + '</span>';
+
+            // Auto scroll to bottom
+            scrollToBottom();
+        };
+
+        recognition.onerror = (event) => {
+            console.error(event.error);
+            // Optionally handle error visually
+            if (event.error === 'no-speech') {
+                // ignore
+            }
+        };
+
+        // Functions
+        function toggleListening() {
             if (isListening) {
                 recognition.stop();
             } else {
                 recognition.start();
             }
-        });
+        }
+
+        function toggleLanguage() {
+            if (currentLang === 'en-US') {
+                currentLang = 'hi-IN';
+                langDisplay.innerText = '🇮🇳 हिंदी';
+            } else if (currentLang === 'hi-IN') {
+                currentLang = 'gu-IN';
+                langDisplay.innerText = '🇮🇳 ગુજરાતી';
+            } else {
+                currentLang = 'en-US';
+                langDisplay.innerText = '🇬🇧 English';
+            }
+
+            recognition.lang = currentLang;
+
+            // If listening, restart to apply language change
+            if (isListening) {
+                recognition.stop();
+                // A small delay is sometimes needed for the engine to reset
+                setTimeout(() => recognition.start(), 200);
+            }
+        }
+
+        function createNewBubble() {
+            // Remove empty state if present
+            const emptyState = document.querySelector('.empty-state');
+            if (emptyState) emptyState.remove();
+
+            const bubble = document.createElement('div');
+            bubble.classList.add('message-bubble');
+            chatContainer.appendChild(bubble);
+            currentBubble = bubble;
+            scrollToBottom();
+        }
+
+        function clearChat() {
+            chatContainer.innerHTML = '<div class="empty-state">Tap the Mic and start speaking! <br> 🎤</div>';
+            currentBubble = null;
+            if (isListening) {
+                // If we clear while listening, we probably want to start a fresh bubble immediately?
+                // Or just stop.
+                recognition.stop();
+            }
+        }
+
+        function scrollToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
     </script>
 </body>
 
