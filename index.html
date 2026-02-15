@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Voice Typer for Kids | Supports English Hindi Gujarati and 23 more languages</title>
+    <title>Kids Voice Typer</title>
     <style>
         @font-face {
             font-family: 'ChalkboardSE-Light';
@@ -270,6 +270,7 @@
             // But if we restart session, we want a NEW bubble.
             // Let's create one now.
             createNewBubble();
+            finalTranscript = ''; // Reset accumulator on start
         };
 
         recognition.onend = () => {
@@ -280,33 +281,38 @@
         };
 
         recognition.onresult = (event) => {
-            // Robust logic:
-            // The event.results list contains ALL results for the CURRENT session.
-            // We should re-render the ENTIRE content of the current bubble based on this list.
-
             if (!currentBubble) {
-                // Should have been created onstart, but if something weird happens (or we want to be safe)
                 createNewBubble();
             }
 
-            let sessionFinalText = '';
-            let sessionInterimText = '';
+            let interim = '';
+            let newFinal = '';
 
-            for (let i = 0; i < event.results.length; ++i) {
+            // Only process new results starting from resultIndex
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
                 if (event.results[i].isFinal) {
-                    sessionFinalText += event.results[i][0].transcript;
+                    newFinal += event.results[i][0].transcript;
                 } else {
-                    sessionInterimText += event.results[i][0].transcript;
+                    interim += event.results[i][0].transcript;
                 }
             }
 
-            // Update the bubble.
-            // We replace the HTML entirely to ensure no duplication.
-            currentBubble.innerHTML = sessionFinalText + '<span class="interim-text"> ' + sessionInterimText + '</span>';
+            // Append new final text to our session accumulator
+            if (newFinal) {
+                // Add space if needed
+                if (finalTranscript && !finalTranscript.endsWith(' ') && !newFinal.startsWith(' ')) {
+                    finalTranscript += ' ';
+                }
+                finalTranscript += newFinal;
+            }
+
+            // Update DOM with accumulator + interim
+            // Use innerText/textContent style to be safe, but innerHTML for the span is needed.
+            // We just set the content.
+            currentBubble.innerHTML = finalTranscript + '<span class="interim-text" style="color: #999"> ' + interim + '</span>';
 
             scrollToBottom();
         };
-
         recognition.onerror = (event) => {
             console.error(event.error);
             // Optionally handle error visually
