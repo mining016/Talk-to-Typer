@@ -310,23 +310,32 @@
 
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition)();
 
-        recognition.continuous = true;
+        recognition.continuous = false; // Changed to false for robustness
         recognition.interimResults = true;
         recognition.lang = currentLang;
 
         recognition.onstart = () => {
-            isListening = true;
             micBtn.classList.add('listening');
             micBtn.innerHTML = '🛑';
-            finalTranscript = '';
-            createNewBubble();
         };
 
         recognition.onend = () => {
-            isListening = false;
-            micBtn.classList.remove('listening');
-            micBtn.innerHTML = '🎤';
-            currentBubble = null;
+            if (isListening) {
+                // Auto-restart for "manual continuous" mode
+                try {
+                    recognition.start();
+                } catch (e) {
+                    console.log("Restart error", e);
+                    isListening = false;
+                    micBtn.classList.remove('listening');
+                    micBtn.innerHTML = '🎤';
+                }
+            } else {
+                // Stopped by user
+                micBtn.classList.remove('listening');
+                micBtn.innerHTML = '🎤';
+                currentBubble = null;
+            }
         };
 
         recognition.onresult = (event) => {
@@ -335,24 +344,31 @@
             }
 
             let interim = '';
-            let newFinal = '';
+            let finalUpdate = '';
 
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                if (event.results[i].isFinal) {
-                    newFinal += event.results[i][0].transcript;
-                } else {
-                    interim += event.results[i][0].transcript;
-                }
+            // In continuous=false, we only get results[0]
+            const result = event.results[0];
+
+            if (result.isFinal) {
+                finalUpdate = result[0].transcript;
+            } else {
+                interim = result[0].transcript;
             }
 
-            if (newFinal) {
-                if (finalTranscript && !finalTranscript.endsWith(' ') && !newFinal.startsWith(' ')) {
-                    finalTranscript += ' ';
-                }
-                finalTranscript += newFinal;
+            // Use property on DOM element to store verified text
+            if (typeof currentBubble.committedText === 'undefined') {
+                currentBubble.committedText = '';
             }
 
-            currentBubble.innerHTML = finalTranscript + '<span class="interim-text" style="color: #999"> ' + interim + '</span>';
+            if (finalUpdate) {
+                if (currentBubble.committedText && !currentBubble.committedText.endsWith(' ') && !finalUpdate.startsWith(' ')) {
+                    currentBubble.committedText += ' ';
+                }
+                currentBubble.committedText += finalUpdate;
+            }
+
+            // Render
+            currentBubble.innerHTML = currentBubble.committedText + '<span class="interim-text" style="color: #999"> ' + interim + '</span>';
             scrollToBottom();
         };
 
@@ -366,8 +382,10 @@
         // Functions
         function toggleListening() {
             if (isListening) {
+                isListening = false;
                 recognition.stop();
             } else {
+                isListening = true;
                 recognition.start();
             }
         }
@@ -407,6 +425,7 @@
             chatContainer.innerHTML = '<div class="empty-state">Tap the Mic and start speaking! <br> 🎤</div>';
             currentBubble = null;
             if (isListening) {
+                isListening = false;
                 recognition.stop();
             }
         }
