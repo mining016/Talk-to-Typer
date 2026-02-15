@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640">
+  <!-- Background Gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E0F7FA;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#B3E5FC;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="640" fill="url(#bgGradient)"/>
+  
+  <!-- Decorative Bubbles -->
+  <circle cx="100" cy="100" r="40" fill="#FFFFFF" opacity="0.5"/>
+  <circle cx="1200" cy="500" r="60" fill="#FFFFFF" opacity="0.5"/>
+  <circle cx="600" cy="600" r="80" fill="#FFFFFF" opacity="0.3"/>
+  <circle cx="800" cy="50" r="30" fill="#FFFFFF" opacity="0.4"/>
+
+  <!-- Robot Icon (Scaled Up) -->
+  <g transform="translate(150, 170) scale(0.6)">
+      <rect width="512" height="512" fill="none"/>
+      <!-- Robot Head -->
+      <rect x="100" y="100" width="312" height="250" rx="40" fill="#EEEEEE" stroke="#333" stroke-width="10"/>
+      <!-- Eyes -->
+      <circle cx="180" cy="200" r="30" fill="#333"/>
+      <circle cx="332" cy="200" r="30" fill="#333"/>
+      <!-- Mouth -->
+      <rect x="180" y="280" width="152" height="20" rx="10" fill="#333"/>
+      <!-- Antenna -->
+      <line x1="256" y1="100" x2="256" y2="50" stroke="#FF9800" stroke-width="20" stroke-linecap="round"/>
+      <circle cx="256" cy="40" r="20" fill="#FF9800"/>
+      <!-- Ears -->
+      <rect x="60" y="180" width="40" height="80" rx="10" fill="#FF9800" stroke="#333" stroke-width="5"/>
+      <rect x="412" y="180" width="40" height="80" rx="10" fill="#FF9800" stroke="#333" stroke-width="5"/>
+  </g>
+
+  <!-- Title Text -->
+  <text x="500" y="300" font-family="'Comic Sans MS', 'Chalkboard SE', sans-serif" font-size="90" fill="#2196F3" font-weight="bold">Talk to Typer</text>
+  <text x="500" y="380" font-family="sans-serif" font-size="40" fill="#555">Voice Typing Fun for Kids! 🎈🤖</text>
+  
+  <!-- Features / Tags -->
+  <g transform="translate(500, 450)">
+      <rect x="0" y="0" width="180" height="50" rx="25" fill="#4CAF50"/>
+      <text x="90" y="35" text-anchor="middle" fill="white" font-family="sans-serif" font-size="24" font-weight="bold">English</text>
+      
+      <rect x="200" y="0" width="150" height="50" rx="25" fill="#FF9800"/>
+      <text x="275" y="35" text-anchor="middle" fill="white" font-family="sans-serif" font-size="24" font-weight="bold">Hindi</text>
+      
+      <rect x="370" y="0" width="180" height="50" rx="25" fill="#E91E63"/>
+      <text x="460" y="35" text-anchor="middle" fill="white" font-family="sans-serif" font-size="24" font-weight="bold">Gujarati</text>
+  </g>
+
+</svg>

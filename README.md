@@ -1,5 +1,7 @@
 # 🎈 Talk to Typer 🤖
 
+![Talk to Typer Check out cover](github-cover.svg)
+
 **A fun, kid-friendly voice typing app designed to help children learn spellings!**
 
 Features real-time speech-to-text in **English**, **Hindi**, and **Gujarati** with a colorful chat interface. Built as an installable **PWA** for offline use on any device. 100% local, privacy-focused, and login-free.
