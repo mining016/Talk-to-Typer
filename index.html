@@ -3,8 +3,14 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Kids Voice Typer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Talk to Typer</title>
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2196F3">
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+
     <style>
         @font-face {
             font-family: 'ChalkboardSE-Light';
@@ -28,18 +34,16 @@
             font-family: 'ChalkboardSE-Light', 'Comic Sans MS', 'Chalkboard SE', sans-serif;
             background-color: var(--bg-color);
             height: 100dvh;
-            /* Mobile viewport height fix */
             width: 100vw;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            /* Prevent body scroll */
         }
 
-        /* Header */
+        /* Header adjustments for Info button */
         header {
+            position: relative;
             flex-shrink: 0;
-            /* Don't shrink */
             background-color: var(--secondary-color);
             color: white;
             text-align: center;
@@ -47,17 +51,37 @@
             font-size: 1.5rem;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-top: env(safe-area-inset-top, 10px);
+            /* Handle notch */
         }
+
+        #info-btn {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            /* Center vertically relative to header content */
+            transform: translateY(-50%);
+            /* Add some padding for touch target */
+            padding: 10px;
+            margin-top: env(safe-area-inset-top, 0px);
+            /* Adjust for notch if header padding doesn't cover it well */
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: white;
+        }
+
 
         /* Chat Area */
         #chat-container {
             flex: 1;
-            /* Take remaining space */
             padding: 20px;
             padding-bottom: 80px;
-            /* Space for mic button overlap */
             overflow-y: auto;
-            /* Scroll inside */
             overflow-x: hidden;
             display: flex;
             flex-direction: column;
@@ -70,18 +94,15 @@
 
         .message-bubble {
             background-color: #DCF8C6;
-            /* WhatsApp sent message color */
             padding: 15px 20px;
             border-radius: 20px;
             border-bottom-right-radius: 5px;
-            /* Pointy corner on right */
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
             max-width: 85%;
             font-size: 1.25rem;
             line-height: 1.5;
             color: var(--text-color);
             align-self: flex-end;
-            /* Align to right */
             position: relative;
             animation: popIn 0.3s ease-out;
             margin-bottom: 5px;
@@ -106,7 +127,6 @@
         /* Bottom Control Bar */
         #control-bar {
             flex-shrink: 0;
-            /* Fixed height */
             background-color: white;
             padding: 15px 20px;
             display: flex;
@@ -117,10 +137,8 @@
             width: 100%;
             box-sizing: border-box;
             padding-bottom: env(safe-area-inset-bottom, 15px);
-            /* Handle iPhone home bar */
         }
 
-        /* Buttons */
         .btn {
             border: none;
             border-radius: 50px;
@@ -154,13 +172,11 @@
             width: 100px;
         }
 
-        /* Mic Button position tweaks */
         #mic-container {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
             bottom: 30px;
-            /* Adjust based on control bar height */
             z-index: 25;
             padding-bottom: env(safe-area-inset-bottom, 0px);
         }
@@ -195,27 +211,63 @@
             }
         }
 
-        /* Language Flag Icon enhancement */
         .lang-icon {
             font-size: 1.2em;
             margin-right: 5px;
         }
 
-        /* Empty State */
         .empty-state {
             text-align: center;
             color: #888;
             margin-top: 50px;
             font-size: 1.2rem;
         }
+
+        /* Dialog Styles */
+        dialog {
+            border: none;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            font-family: inherit;
+            max-width: 80vw;
+            text-align: center;
+        }
+
+        dialog::backdrop {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        dialog h2 {
+            margin-top: 0;
+            color: var(--secondary-color);
+        }
+
+        .close-dialog-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
     </style>
 </head>
 
 <body>
-
     <header>
+        <button id="info-btn" onclick="openAbout()">ℹ️</button>
         🎈 Talk to Typer 🤖
     </header>
+
+    <dialog id="about-dialog">
+        <h2>About App</h2>
+        <p>Developed for <strong>Yansi</strong>, <strong>Kavya</strong> and <strong>Miransh</strong> so they can learn
+            spellings.</p>
+        <button class="close-dialog-btn" onclick="closeAbout()">Close</button>
+    </dialog>
 
     <div id="chat-container">
         <div class="empty-state">
@@ -227,17 +279,11 @@
         <button id="lang-toggle" class="btn" onclick="toggleLanguage()">
             <span id="lang-display">🇬🇧 English</span>
         </button>
-
-        <!-- Mic container moved inside control bar visually or just positioned relative to screen? 
-             Absolute position relative to body might be safer for overlay. 
-             Actually, keeping it in DOM order but absolute is fine.
-        -->
         <div id="mic-container">
             <button id="mic-btn" class="btn" onclick="toggleListening()">
                 🎤
             </button>
         </div>
-
         <button id="clear-btn" class="btn" onclick="clearChat()">
             🗑️ Clear
         </button>
@@ -248,13 +294,20 @@
         const chatContainer = document.getElementById('chat-container');
         const micBtn = document.getElementById('mic-btn');
         const langDisplay = document.getElementById('lang-display');
+        const aboutDialog = document.getElementById('about-dialog'); // Added dialog
 
         // State
         let isListening = false;
         let currentLang = 'en-US';
         let currentBubble = null;
+        let finalTranscript = '';
 
         // Speech Recognition Setup
+        // Check browser support
+        if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+            alert("Speech recognition not supported in this browser. Please use Chrome.");
+        }
+
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition)();
 
         recognition.continuous = true;
@@ -265,19 +318,15 @@
             isListening = true;
             micBtn.classList.add('listening');
             micBtn.innerHTML = '🛑';
-            // Don't create bubble yet, wait for first sound result to avoid empty bubbles?
-            // User requested "types as we speak", so immediate Feedback is good.
-            // But if we restart session, we want a NEW bubble.
-            // Let's create one now.
+            finalTranscript = '';
             createNewBubble();
-            finalTranscript = ''; // Reset accumulator on start
         };
 
         recognition.onend = () => {
             isListening = false;
             micBtn.classList.remove('listening');
             micBtn.innerHTML = '🎤';
-            currentBubble = null; // Reset current bubble reference so next start creates a new one
+            currentBubble = null;
         };
 
         recognition.onresult = (event) => {
@@ -288,7 +337,6 @@
             let interim = '';
             let newFinal = '';
 
-            // Only process new results starting from resultIndex
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 if (event.results[i].isFinal) {
                     newFinal += event.results[i][0].transcript;
@@ -297,25 +345,19 @@
                 }
             }
 
-            // Append new final text to our session accumulator
             if (newFinal) {
-                // Add space if needed
                 if (finalTranscript && !finalTranscript.endsWith(' ') && !newFinal.startsWith(' ')) {
                     finalTranscript += ' ';
                 }
                 finalTranscript += newFinal;
             }
 
-            // Update DOM with accumulator + interim
-            // Use innerText/textContent style to be safe, but innerHTML for the span is needed.
-            // We just set the content.
             currentBubble.innerHTML = finalTranscript + '<span class="interim-text" style="color: #999"> ' + interim + '</span>';
-
             scrollToBottom();
         };
+
         recognition.onerror = (event) => {
             console.error(event.error);
-            // Optionally handle error visually
             if (event.error === 'no-speech') {
                 // ignore
             }
@@ -344,16 +386,13 @@
 
             recognition.lang = currentLang;
 
-            // If listening, restart to apply language change
             if (isListening) {
                 recognition.stop();
-                // A small delay is sometimes needed for the engine to reset
                 setTimeout(() => recognition.start(), 200);
             }
         }
 
         function createNewBubble() {
-            // Remove empty state if present
             const emptyState = document.querySelector('.empty-state');
             if (emptyState) emptyState.remove();
 
@@ -368,8 +407,6 @@
             chatContainer.innerHTML = '<div class="empty-state">Tap the Mic and start speaking! <br> 🎤</div>';
             currentBubble = null;
             if (isListening) {
-                // If we clear while listening, we probably want to start a fresh bubble immediately?
-                // Or just stop.
                 recognition.stop();
             }
         }
@@ -378,6 +415,31 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
+        // About Dialog Logic
+        function openAbout() {
+            aboutDialog.showModal();
+        }
+        function closeAbout() {
+            aboutDialog.close();
+        }
+        aboutDialog.addEventListener('click', (event) => {
+            if (event.target === aboutDialog) {
+                aboutDialog.close();
+            }
+        });
+
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
     </script>
 </body>
 

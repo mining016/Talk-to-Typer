@@ -1,5 +1,8 @@
 # 🎈 Talk to Typer 🤖
-A fun, kid-friendly voice-to-text web application designed for educational and domestic use. It features a colorful "WhatsApp-style" chat interface where kids can speak and see their words appear as message bubbles.
+
+**A fun, kid-friendly voice typing app designed to help children learn spellings!**
+
+Features real-time speech-to-text in **English**, **Hindi**, and **Gujarati** with a colorful chat interface. Built as an installable **PWA** for offline use on any device. 100% local, privacy-focused, and login-free.
 
 ## ✨ Features
 
