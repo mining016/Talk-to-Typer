@@ -201,7 +201,7 @@
 
     <div id="control-bar">
         <button id="lang-toggle" class="btn" onclick="toggleLanguage()">
-            <span id="lang-display">🇬🇧 En</span>
+            <span id="lang-display">🇬🇧 English</span>
         </button>
 
         <div id="mic-container">
@@ -337,18 +337,21 @@
         function toggleLanguage() {
             if (currentLang === 'en-US') {
                 currentLang = 'hi-IN';
-                langDisplay.innerText = '🇮🇳 Hi';
-                // Update specific button text? No, just the toggle
+                langDisplay.innerText = '🇮🇳 हिंदी';
+            } else if (currentLang === 'hi-IN') {
+                currentLang = 'gu-IN';
+                langDisplay.innerText = '🇮🇳 ગુજરાતી';
             } else {
                 currentLang = 'en-US';
-                langDisplay.innerText = '🇬🇧 En';
+                langDisplay.innerText = '🇬🇧 English';
             }
 
             recognition.lang = currentLang;
 
-            // If listening, restart to apply language change?
+            // If listening, restart to apply language change
             if (isListening) {
                 recognition.stop();
+                // A small delay is sometimes needed for the engine to reset
                 setTimeout(() => recognition.start(), 200);
             }
         }
