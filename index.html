@@ -266,6 +266,9 @@
         <h2>About App</h2>
         <p>Developed for <strong>Yansi</strong>, <strong>Kavya</strong> and <strong>Miransh</strong> so they can learn
             spellings.</p>
+        <button id="install-btn" class="btn"
+            style="display: none; background-color: var(--accent-color); color: white; margin: 10px auto;">📲 Install
+            App</button>
         <button class="close-dialog-btn" onclick="closeAbout()">Close</button>
     </dialog>
 
@@ -459,6 +462,35 @@
                     });
             });
         }
+
+        // PWA Install Logic
+        let deferredPrompt;
+        const installBtn = document.getElementById('install-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent the mini-infobar from appearing on mobile
+            e.preventDefault();
+            // Stash the event so it can be triggered later.
+            deferredPrompt = e;
+            // Update UI notify the user they can install the PWA
+            installBtn.style.display = 'flex';
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                deferredPrompt = null;
+                installBtn.style.display = 'none';
+            }
+        });
+
+        window.addEventListener('appinstalled', () => {
+            installBtn.style.display = 'none';
+            deferredPrompt = null;
+            console.log('PWA was installed');
+        });
     </script>
 </body>
 
