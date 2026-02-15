@@ -1,67 +1,126 @@
 <!DOCTYPE html>
 <html>
-  <head>
+
+<head>
     <title>Voice to Text</title>
     <style>
-      * {
-        font-size: 16px;
-      }
-      body {
-        padding: 8px 16px;
-        font-family: sans-serif;
-        min-width: 90vw;
-        min-height: 90vh;
-      }
-      button, select, option {
-        padding: 8px;
-        margin: 8px;
-        width: 200px;
-      }
-      #output {
-        padding: 8px;
-        margin: 8px;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        min-height: 100%;
-        height: 85vh;
-      }
+        * {
+            font-size: 16px;
+        }
+
+        body {
+            padding: 8px 16px;
+            font-family: sans-serif;
+            min-width: 90vw;
+            min-height: 90vh;
+        }
+
+        button,
+        select,
+        option {
+            padding: 8px;
+            margin: 8px;
+            width: 200px;
+        }
+
+        #output {
+            padding: 8px;
+            margin: 8px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            min-height: 100%;
+            height: 85vh;
+        }
     </style>
-  </head>
-  <body>
+</head>
+
+<body>
     <button id="startButton">Start Voice Input</button>
     <button id="clear">Clear</button>
     <select id="language" onchange="recognition.lang = this.value">
-      <option value="en-US">English</option>
-      <option value="hi-IN">Hindi</option>
+        <option value="en-US">English</option>
+        <option value="hi-IN">Hindi</option>
     </select>
     <div id="output" contentEditable="true">Hello</div>
 
     <script>
-      const startButton = document.getElementById("startButton");
-      const outputDiv = document.getElementById("output");
-      const clearButton = document.getElementById("clear");
+        const startButton = document.getElementById("startButton");
+        const outputDiv = document.getElementById("output");
+        const clearButton = document.getElementById("clear");
 
-      // Config
-      const LANG = "en-US";
-      clearButton.addEventListener("click", () => {
-        outputDiv.textContent = "";
-      });
+        // Config
+        const LANG = "en-US";
+        clearButton.addEventListener("click", () => {
+            outputDiv.textContent = "";
+        });
 
-      const recognition = new (window.SpeechRecognition ||
-        window.webkitSpeechRecognition ||
-        window.mozSpeechRecognition ||
-        window.msSpeechRecognition)();
+        const recognition = new (window.SpeechRecognition ||
+            window.webkitSpeechRecognition ||
+            window.mozSpeechRecognition ||
+            window.msSpeechRecognition)();
 
-      recognition.lang = LANG;
+        let isListening = false;
 
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        outputDiv.textContent += ` ${transcript}`;
-      };
-      
-      recognition.onstart = () => startButton.textContent = "Listening...";;
-      recognition.onend = () => startButton.textContent = "Start Voice Input";;
-      startButton.addEventListener("click", () => recognition.start());
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        recognition.onresult = (event) => {
+            let interimTranscript = '';
+            let finalTranscript = '';
+
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    finalTranscript += event.results[i][0].transcript;
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
+                }
+            }
+
+            // Remove existing interim span to prevent duplication in text calculation
+            const interimSpan = document.getElementById('interim');
+            if (interimSpan) {
+                interimSpan.remove();
+            }
+
+            if (finalTranscript) {
+                // simple append logic
+                // Check if we need a space
+                const text = outputDiv.innerText;
+                if (text.length > 0 && !text.endsWith(' ') && !finalTranscript.startsWith(' ')) {
+                    outputDiv.appendChild(document.createTextNode(' '));
+                }
+                outputDiv.appendChild(document.createTextNode(finalTranscript));
+            }
+
+            if (interimTranscript) {
+                const newInterimSpan = document.createElement('span');
+                newInterimSpan.id = 'interim';
+                newInterimSpan.style.color = '#888';
+                newInterimSpan.textContent = interimTranscript;
+                outputDiv.appendChild(newInterimSpan);
+            }
+        };
+
+        recognition.onstart = () => {
+            startButton.textContent = "Stop Listening";
+            isListening = true;
+        };
+        recognition.onend = () => {
+            startButton.textContent = "Start Voice Input";
+            isListening = false;
+            // Remove any leftover interim span
+            const interimSpan = document.getElementById('interim');
+            if (interimSpan) interimSpan.remove();
+        };
+
+        startButton.addEventListener("click", () => {
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        });
     </script>
-  </body>
+</body>
+
 </html>
